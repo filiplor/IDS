@@ -140,8 +140,12 @@ INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zem
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('3', 'Viktor Zelený', 'Krátká', '1232', 'Velká Jezera', '11178', 'Èr', '+420545666599', 'viktor@centrum.com');
 
 INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('17/12/2020', 'DD/MM/YYYY'), 'dobry obchod', '10', '1');
-INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('17/11/2021', 'DD/MM/YYYY'), 'Nejhorší obchod kde jsem kdy byl', '0', '2');
-INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('3/4/2022', 'DD/MM/YYYY'), 'Kvalitní produkty, akorát cena je vyšší', '7', '2');
+INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('8/5/2021', 'DD/MM/YYYY'), 'Pomaly dovoz', '5', '2');
+INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('17/11/2021', 'DD/MM/YYYY'), 'Nejhorší obchod kde jsem kdy byl', '1', '2');
+INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('30/11/2021', 'DD/MM/YYYY'), 'Dal jsem mu druhou šanci, obchod znovu sklamal', '2', '2');
+INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('3/4/2022', 'DD/MM/YYYY'), 'Kvalitní produkty, akorát cena je vyšší', '7', '3');
+INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('10/2/2022', 'DD/MM/YYYY'), 'Produkt došel rychle, kvalita je skvìlá', '10', '3');
+
 
 INSERT INTO pravnicka_osoba(ico, dic, id_zakaznika) VALUES ('98765432',  'CZ9876543288', '3');
 
@@ -159,6 +163,36 @@ INSERT INTO zbozi(id_zbozi, id_dodavatel, id_pastelky, id_skicaky, id_zamestnanc
 INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('1', '1');
 INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('2', '2');
 INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('3', '3');
+
+
+--          SELECTY
+
+--1. Kolik je pastelek daných pastelek na sklade [ID_ZBOZI, MNOZSTVI] (2 tabulky, NATURAL JOIN)
+/*SELECT id_zbozi, mnozstvi 
+FROM zbozi NATURAL JOIN pastelky;*/
+
+--2. Ktery zakaznik je pravnicka osoba? [ID, JMENO] (2 tabulky, INNER JOIN, ON)
+/*SELECT pravnicka_osoba.id_zakaznika, zakaznik.jmeno 
+FROM zakaznik INNER JOIN pravnicka_osoba ON zakaznik.id_zakaznika = pravnicka_osoba.id_zakaznika;*/
+
+--3. Jaké zboží vyexpedoval zamestnanec Vít Traktor [JMENO, ID_ZBOZI, ID_OBJEDNAVKY](3 tabulky, NATURAL JOIN, WHERE)
+/*SELECT zamestnanec.jmeno, id_zbozi, id_objednavky
+FROM objednavka NATURAL JOIN objednane_zbozi NATURAL JOIN zamestnanec 
+WHERE zamestnanec.jmeno = 'Vít Traktor';*/
+
+--4. KOlik nejvíce hodnocení napsal jeden zákazník (GROUP BY, COUNT())
+/*SELECT id_zakaznika, COUNT(id_zakaznika) pocet_hodnoceni 
+FROM hodnoceni_recenze 
+GROUP BY id_zakaznika;*/
+
+--5. Vyber jméno a telefon nespokojeného zákazníka. Najdeme ho podle špatných bodu recenze a zistime kolik krat se stazoval. [JMENO, TELEFON, POCET_ZLYCH_RECENZI, NEJNIZSI_HODNOCENI] (2 tabulky, NATURAL JOIN, GROUP BY, COUNT, MIN)
+/*SELECT jmeno, telefon, COUNT(jmeno) nespokojne_recenze, MIN(pocet_bodu) nejnizsi_hodnoceni
+FROM zakaznik NATURAL JOIN hodnoceni_recenze
+WHERE pocet_bodu <= 5
+GROUP BY jmeno, telefon;*/
+
+--6. 
+
 
 
 
