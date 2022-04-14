@@ -138,6 +138,7 @@ INSERT INTO dodavatel(id_dodavatele, nazev, ulice, cislo_popisne, mesto, psc, ze
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('1', 'Viktor Kožený', 'Velká', '112', 'Velká Paka', '11101', 'Èr', '+420545666566', 'viktor@gmail.com');
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('2', 'Viktor Hadrný', 'Dlouhá', '1122', 'Velká Draka', '11564', 'Èr', '+420545666577', 'viktor@seznam.com');
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('3', 'Viktor Zelený', 'Krátká', '1232', 'Velká Jezera', '11178', 'Èr', '+420545666599', 'viktor@centrum.com');
+INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('4', 'Martin Šetrný', 'Vlhká', '53', 'Potkanice', '69420', 'Èr', '+370594522189', 'matospoko@gmail.com');
 
 INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('17/12/2020', 'DD/MM/YYYY'), 'dobry obchod', '10', '1');
 INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('8/5/2021', 'DD/MM/YYYY'), 'Pomaly dovoz', '5', '2');
@@ -159,6 +160,7 @@ INSERT INTO objednavka(id_objednavky, id_zakaznika, id_zamestnance, stav, datum_
 INSERT INTO zbozi(id_zbozi, id_dodavatel, id_pastelky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '1', '1', '1', '1', '10', '200', TO_DATE('03/4/2020', 'DD/MM/YYYY'));
 INSERT INTO zbozi(id_zbozi, id_dodavatel, id_skicaky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '2', '2','2', '1', '5', '230', TO_DATE('08/5/2021', 'DD/MM/YYYY'));
 INSERT INTO zbozi(id_zbozi, id_dodavatel, id_pastelky, id_skicaky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '3', '1', '1', '1', '1', '50', '200', TO_DATE('03/4/2020', 'DD/MM/YYYY'));
+INSERT INTO zbozi(id_zbozi, id_dodavatel, id_skicaky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '4', '2','1', '1', '60', '120', TO_DATE('15/6/2021', 'DD/MM/YYYY'));
 
 INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('1', '1');
 INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('2', '2');
@@ -168,31 +170,36 @@ INSERT INTO objednane_zbozi(id_zbozi, id_objednavky) VALUES ('3', '3');
 --          SELECTY
 
 --1. Kolik je pastelek daných pastelek na sklade [ID_ZBOZI, MNOZSTVI] (2 tabulky, NATURAL JOIN)
-/*SELECT id_zbozi, mnozstvi 
-FROM zbozi NATURAL JOIN pastelky;*/
+SELECT id_zbozi, mnozstvi 
+FROM zbozi NATURAL JOIN pastelky;
 
 --2. Ktery zakaznik je pravnicka osoba? [ID, JMENO] (2 tabulky, INNER JOIN, ON)
-/*SELECT pravnicka_osoba.id_zakaznika, zakaznik.jmeno 
-FROM zakaznik INNER JOIN pravnicka_osoba ON zakaznik.id_zakaznika = pravnicka_osoba.id_zakaznika;*/
+SELECT pravnicka_osoba.id_zakaznika, zakaznik.jmeno 
+FROM zakaznik INNER JOIN pravnicka_osoba ON zakaznik.id_zakaznika = pravnicka_osoba.id_zakaznika;
 
 --3. Jaké zboží vyexpedoval zamestnanec Vít Traktor [JMENO, ID_ZBOZI, ID_OBJEDNAVKY](3 tabulky, NATURAL JOIN, WHERE)
-/*SELECT zamestnanec.jmeno, id_zbozi, id_objednavky
+SELECT zamestnanec.jmeno, id_zbozi, id_objednavky
 FROM objednavka NATURAL JOIN objednane_zbozi NATURAL JOIN zamestnanec 
-WHERE zamestnanec.jmeno = 'Vít Traktor';*/
+WHERE zamestnanec.jmeno = 'Vít Traktor';
 
 --4. KOlik nejvíce hodnocení napsal jeden zákazník (GROUP BY, COUNT())
-/*SELECT id_zakaznika, COUNT(id_zakaznika) pocet_hodnoceni 
+SELECT id_zakaznika, COUNT(id_zakaznika) pocet_hodnoceni 
 FROM hodnoceni_recenze 
-GROUP BY id_zakaznika;*/
+GROUP BY id_zakaznika;
 
 --5. Vyber jméno a telefon nespokojeného zákazníka. Najdeme ho podle špatných bodu recenze a zistime kolik krat se stazoval. [JMENO, TELEFON, POCET_ZLYCH_RECENZI, NEJNIZSI_HODNOCENI] (2 tabulky, NATURAL JOIN, GROUP BY, COUNT, MIN)
-/*SELECT jmeno, telefon, COUNT(jmeno) nespokojne_recenze, MIN(pocet_bodu) nejnizsi_hodnoceni
+SELECT jmeno, telefon, COUNT(jmeno) nespokojne_recenze, MIN(pocet_bodu) nejnizsi_hodnoceni
 FROM zakaznik NATURAL JOIN hodnoceni_recenze
 WHERE pocet_bodu <= 5
-GROUP BY jmeno, telefon;*/
+GROUP BY jmeno, telefon;
 
---6. 
+--6. Vyberem všechny produkty které byly už nìkdy objednány a expedovány. [ID_ZBOZI] (IN)
+SELECT id_zbozi
+FROM zbozi 
+WHERE id_zbozi 
+    IN (SELECT objednane_zbozi.id_zbozi FROM objednavka LEFT JOIN objednane_zbozi ON objednavka.id_objednavky = objednane_zbozi.id_objednavky WHERE objednavka.stav = 'odeslano');
 
-
-
-
+--7. Vybere všechny zakazníky, kteøí hodnotili náš obchod. [JMENO, EMAIL] (EXISTS)
+SELECT jmeno, email
+FROM zakaznik z
+WHERE EXISTS (SELECT datum_hodnoceni FROM hodnoceni_recenze hr WHERE hr.id_zakaznika = z.id_zakaznika);
