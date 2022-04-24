@@ -163,7 +163,7 @@ INSERT INTO dodavatel(id_dodavatele, nazev, ulice, cislo_popisne, mesto, psc, ze
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('1', 'Viktor Kožený', 'Velká', '112', 'Velká Paka', '11101', 'Èr', '+420545666566', 'viktor@gmail.com');
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('2', 'Viktor Hadrný', 'Dlouhá', '1122', 'Velká Draka', '11564', 'Èr', '+420545666577', 'viktor@seznam.com');
 INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('3', 'Viktor Zelený', 'Krátká', '1232', 'Velká Jezera', '11178', 'Èr', '+420545666599', 'viktor@centrum.com');
-INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('4', 'Martin Šetrný', 'Vlhká', '53', 'Potkanice', '69420', 'Èr', '+370594522189', 'matospoko@gmail.com');
+INSERT INTO zakaznik (id_zakaznika, jmeno, ulice, cislo_popisne, mesto, psc, zeme, telefon, email) VALUES ('4', 'Martin Šetrný', 'Vlhká', '53', 'Potkanice', '69420', 'Ua', '+370594522189', 'matospoko@gmail.com');
 
 INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('17/12/2020', 'DD/MM/YYYY'), 'dobry obchod', '10', '1');
 INSERT INTO hodnoceni_recenze(datum_hodnoceni, hodnoceni_text, pocet_bodu, id_zakaznika) VALUES (TO_DATE('8/5/2021', 'DD/MM/YYYY'), 'Pomaly dovoz', '5', '2');
@@ -180,7 +180,7 @@ INSERT INTO zamestnanec(id_zamestnance, jmeno, typ_smlouvy, typ_opravneni, heslo
 
 INSERT INTO objednavka(id_objednavky, id_zakaznika, id_zamestnance, stav, datum_objednavky) VALUES (NULL , '1', '1', 'odeslano', TO_DATE('17/12/2020', 'DD/MM/YYYY'));
 INSERT INTO objednavka(id_objednavky, id_zakaznika, id_zamestnance, stav, datum_objednavky) VALUES (NULL, '2', '2', 'odeslano', TO_DATE('17/11/2021', 'DD/MM/YYYY'));
-INSERT INTO objednavka(id_objednavky, id_zakaznika, id_zamestnance, stav, datum_objednavky) VALUES ('3', '3', '1', 'neodeslano', TO_DATE('03/4/2022', 'DD/MM/YYYY'));
+INSERT INTO objednavka(id_objednavky, id_zakaznika, id_zamestnance, stav, datum_objednavky) VALUES ('3', '4', '1', 'neodeslano', TO_DATE('03/4/2022', 'DD/MM/YYYY'));
 
 INSERT INTO zbozi(id_zbozi, id_dodavatel, id_pastelky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '1', '1', '1', '1', '10', '200', TO_DATE('03/4/2020', 'DD/MM/YYYY'));
 INSERT INTO zbozi(id_zbozi, id_dodavatel, id_skicaky, id_zamestnance, mnozstvi, cena_za_kus, datum_dodani) VALUES ( '2', '2','2', '1', '5', '230', TO_DATE('08/5/2021', 'DD/MM/YYYY'));
@@ -202,3 +202,46 @@ SELECT id_zbozi, mnozstvi
 FROM zbozi
 ORDER BY id_zbozi;
 
+------ PROCEDURY
+--
+
+
+------ EXPLAIN PLAN a INDEX
+-- Kolko je ludi z ÈR ktorý majú nejakú objednávku z našeho obchodu?
+EXPLAIN PLAN FOR
+SELECT z.id_zakaznika AS id, z.jmeno AS jmeno, z.telefon AS telefon, COUNT(o.id_zakaznika) AS pocet_objednavek
+FROM zakaznik z JOIN objednavka o ON z.id_zakaznika = o.id_zakaznika
+WHERE z.telefon LIKE '+420%'
+GROUP BY z.id_zakaznika, z.jmeno, z.telefon
+HAVING COUNT(o.id_zakaznika) > 0
+ORDER BY z.id_zakaznika;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+CREATE INDEX tel_zakaznika ON zakaznik (telefon);
+
+EXPLAIN PLAN FOR
+SELECT z.id_zakaznika AS id, z.jmeno AS jmeno, z.telefon AS telefon, COUNT(o.id_zakaznika) AS pocet_objednavek
+FROM zakaznik z JOIN objednavka o ON z.id_zakaznika = o.id_zakaznika
+WHERE z.telefon LIKE '+420%'
+GROUP BY z.id_zakaznika, z.jmeno, z.telefon
+HAVING COUNT(o.id_zakaznika) > 0
+ORDER BY z.id_zakaznika;
+
+SELECT * FROM TABLE(dbms_xplan.display);
+
+------ MATERIALIZED VIEW
+--
+
+------ PRIVILEGES
+GRANT ALL ON objednavka TO xloren18;
+GRANT ALL ON zakaznik TO xloren18;
+GRANT ALL ON dodavatel TO xloren18;
+GRANT ALL ON zbozi TO xloren18;
+GRANT ALL ON objednane_zbozi TO xloren18;
+GRANT ALL ON zamestnanec TO xloren18;
+GRANT ALL ON pravnicka_osoba TO xloren18;
+GRANT ALL ON objednavka TO xloren18;
+GRANT ALL ON objednavka TO xloren18;
+
+-- PRIDAT GRANT NA MATERIALIZED VIEW A PROCEDURY
